@@ -1,0 +1,43 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgres:14.1-alpine
+    container_name: postgres_db
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - '5432:5432'
+    volumes: 
+      - db:/var/lib/postgresql/data:rw
+
+  vault-server:
+    image: hashicorp/vault:latest
+    container_name: vault
+    restart: always
+    ports:
+    - 8200:8200
+    volumes:
+      - vault-data:/vault/file:rw
+      # - ./vault/config/vault.hcl:/vault/config/vault.hcl
+    environment:
+      - VAULT_ADDR=http://localhost:8200
+    cap_add:
+      - IPC_LOCK 
+    command: server
+
+  vault-init:
+    image: hashicorp/vault:latest
+    container_name: vault-init
+    environment:
+      - VAULT_ADDR=http://vault:8200
+    volumes:
+      - ./vault-root-token:/vault/file/vault-root-token
+      - ./vault/vault-init.sh/usr/local/bin/vault-init.sh
+      - vault-data:/vault/file:rw
+    command: usr/local/bin/vault-init.sh
+    depends_on:
+      - vault-server
+    restart: on-failure
