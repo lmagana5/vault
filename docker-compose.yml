@@ -21,7 +21,7 @@ services:
     - 8200:8200
     volumes:
       - vault-data:/vault/file:rw
-      # - ./vault/config/vault.hcl:/vault/config/vault.hcl
+      - ./vault/config/vault.hcl:/vault/config/vault.hcl
     environment:
       - VAULT_ADDR=http://localhost:8200
     cap_add:
@@ -35,9 +35,13 @@ services:
       - VAULT_ADDR=http://vault:8200
     volumes:
       - ./vault-root-token:/vault/file/vault-root-token
-      - ./vault/vault-init.sh/usr/local/bin/vault-init.sh
+      - ./vault/vault-init.sh:/usr/local/bin/vault-init.sh
       - vault-data:/vault/file:rw
     command: usr/local/bin/vault-init.sh
     depends_on:
       - vault-server
     restart: on-failure
+
+volumes:
+  vault-data: {}
+  db: {}
